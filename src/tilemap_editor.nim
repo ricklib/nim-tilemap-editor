@@ -127,7 +127,7 @@ proc buildTestTileMap(): TileMap =
   var map: TileMap
   map.tileSize = 16
   map.chunkSize = 4
-  map.tilesetPath = "assets/tileset.png"
+  map.tilesetPath = absolutePath("assets/tileset.png")
   map.tilesetColumns = 2
   map.tilesetTexture = loadTexture(map.tilesetPath)
 
@@ -184,7 +184,7 @@ proc initGame(): Game =
 
   result.savePath = "levels/tilemap.dat"
 
-  result.level = loadTileMap(result.savePath)
+  result.level = buildTestTileMap()
   result.savePath = absolutePath("levels/tilemap.dat")
 
   result.mouseStatus.lastPos = Vector2(x: 0, y: 0)
@@ -294,6 +294,7 @@ proc handleUserFileIO(g: var Game) =
       let file = callDialogFileOpen("Open Tilemap File (.dat)")
       g.level = loadTileMap(file)
       g.savePath = file
+      echo "handleUserFileIO - Loaded file: " & file
     except IOError:
       echo "handleUserFileIO - Failed to open tilemap file"
 
@@ -301,15 +302,30 @@ proc handleUserFileIO(g: var Game) =
     try:
       let file = callDialogFIleOpen("Open Tileset File")
       g.level.tilesetTexture = loadTexture(file)
+      g.level.tilesetPath = file
+      echo "handleUserFileIO - Loaded tileset: " & file
     except IOError:
       echo "handleUserFileIO - Failed to open tileset file"
     except RaylibError:
       echo "handleUserFileIO - Failed to load texture"
 
-  if isKeyDown(LeftControl) and isKeyPressed(S):
+  if isKeyDown(LeftControl) and isKeyDown(LeftShift) and isKeyPressed(S):
+    try:
+      let file = callDialogFileSave("Save tilemap")
+      saveTileMap(file, g.level)
+      echo "handleUserFileIO - Tilemap file saved as " & file
+      g.level = loadTileMap(file)
+      g.savePath = file
+      echo "handleUserFileIO - Loaded file: " & file
+    except IOError:
+      echo "handleUserFileIO - Failed to save tilemap as"
+    except RaylibError:
+      echo "handleUserFileIO - Failed to load texture"
+  elif isKeyDown(LeftControl) and isKeyPressed(S):
     saveTileMap(g.savePath, g.level)
     echo "handleUserFileIO - Tilemap file saved"
-
+  
+      
 proc handleInput(game: var Game) =
   handleDragging(game)
   handleScrolling(game)
@@ -341,15 +357,16 @@ proc draw(game: var Game) =
   endDrawing()
 
 when isMainModule:
-  initWindow(640, 480, "Tilemap Test")
+  initWindow(640, 480, "Tilemap Editor")
   setWindowState(flags(WindowResizable))
+
+  let icon = loadImage("assets/icon.png")
+  setWindowIcon(icon)
 
   var game: Game = initGame()
     
   while not windowShouldClose():
     handleInput(game)
     draw(game)
-
-  saveTileMap(game.savePath, game.level)
     
   closeWindow()

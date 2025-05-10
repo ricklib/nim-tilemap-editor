@@ -15,11 +15,14 @@ Minus = Scroll down tile ID
 
 Equals/Plus = Scroll up tile ID
 
+Left Bracket = Switch to background layer
+
+Right Bracket = Switch to foreground layer
+
 CTRL + S = Save active tilemap file
+
+CTRL + Left Shift + S = Save active tilemap as
 
 CTRL + O = Open tilemap file
 
 CTRL + T = Open tileset file
-
-
-NOTE: The program auto-saves the tilemap file on succesful exit
