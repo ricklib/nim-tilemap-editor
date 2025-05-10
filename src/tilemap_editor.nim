@@ -319,6 +319,8 @@ proc handleInput(game: var Game) =
   handleUserFileIO(game)
 
 proc draw(game: var Game) =
+  let screenHeight = getScreenHeight()
+
   beginDrawing()
   
   clearBackground(RAYWHITE)
@@ -327,12 +329,12 @@ proc draw(game: var Game) =
   drawTileMap(game.level, game.camera)
   endMode2d()
 
+  # top-left corner
   drawFPS(10, 10)
   drawText("Tile: " & $game.selectedTile, 10, 30, 20, DARKGRAY)
   drawText("Layer: " & game.selectedLayer, 10, 50, 20, DARKGRAY)
 
-  let screenHeight = getScreenHeight()
-  
+  # bottom-left corner
   drawText("File: " & game.savePath, 10, screenHeight - 30, 20, DARKGRAY)
   drawText("Tileset: " & game.level.tilesetPath, 10, screenheight - 50, 20, DARKGRAY)
 
