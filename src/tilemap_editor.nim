@@ -1,5 +1,5 @@
-import raylib, msgpack4nim
-import std/sequtils, std/tables
+import raylib, msgpack4nim, native_dialogs
+import std/sequtils, std/tables, std/os
 
 type
   TileId = uint8
@@ -36,13 +36,15 @@ type
     mouseStatus: MouseStatus
     selectedTile: uint8
     selectedLayer: string # "fg" or "bg"
+    savePath: string
 
 proc serializeTileMap(m: TileMap): string =
+  let absoluteTilesetPath = absolutePath(m.tilesetPath)
   let serializableMap = SerializableTileMap(
     chunks: toSeq(m.chunks.values),
     tileSize: m.tileSize,
     chunkSize: m.chunkSize,
-    tilesetPath: m.tilesetPath,
+    tilesetPath: absoluteTilesetPath,
     tilesetColumns: m.tilesetColumns,
   )
 
@@ -79,7 +81,7 @@ proc saveTileMap(filename: string, map: TileMap) =
 
 proc loadTileMap(filename: string): TileMap =
   return deserializeTileMap(loadFromFile(filename))
-
+  
 proc getVisibleWorldRect(camera: Camera2D): Rectangle =
   let screenTL = getScreenToWorld2D(Vector2(x: 0, y: 0), camera)
   let screenBR = getScreenToWorld2D(
@@ -180,7 +182,10 @@ proc initGame(): Game =
   result.camera.rotation = 0.0
   result.camera.zoom = 1.0
 
-  result.level = loadTileMap("levels/tilemap.dat")
+  result.savePath = "levels/tilemap.dat"
+
+  result.level = loadTileMap(result.savePath)
+  result.savePath = absolutePath("levels/tilemap.dat")
 
   result.mouseStatus.lastPos = Vector2(x: 0, y: 0)
   result.mouseStatus.dragging = false
@@ -283,12 +288,35 @@ proc handleLayerCycling(g: var Game) =
   if isKeyPressed(RightBracket):
     g.selectedLayer = "fg"
 
+proc handleUserFileIO(g: var Game) =
+  if isKeyDown(LeftControl) and isKeyPressed(O):
+    try:
+      let file = callDialogFileOpen("Open Tilemap File (.dat)")
+      g.level = loadTileMap(file)
+      g.savePath = file
+    except IOError:
+      echo "handleUserFileIO - Failed to open tilemap file"
+
+  if isKeyDown(LeftControl) and isKeyPressed(T):
+    try:
+      let file = callDialogFIleOpen("Open Tileset File")
+      g.level.tilesetTexture = loadTexture(file)
+    except IOError:
+      echo "handleUserFileIO - Failed to open tileset file"
+    except RaylibError:
+      echo "handleUserFileIO - Failed to load texture"
+
+  if isKeyDown(LeftControl) and isKeyPressed(S):
+    saveTileMap(g.savePath, g.level)
+    echo "handleUserFileIO - Tilemap file saved"
+
 proc handleInput(game: var Game) =
   handleDragging(game)
   handleScrolling(game)
   handleTileCycling(game)
   handleLayerCycling(game)
   handleTilePlacement(game)
+  handleUserFileIO(game)
 
 proc draw(game: var Game) =
   beginDrawing()
@@ -299,9 +327,14 @@ proc draw(game: var Game) =
   drawTileMap(game.level, game.camera)
   endMode2d()
 
+  drawFPS(10, 10)
   drawText("Tile: " & $game.selectedTile, 10, 30, 20, DARKGRAY)
   drawText("Layer: " & game.selectedLayer, 10, 50, 20, DARKGRAY)
-  drawFPS(10, 10)
+
+  let screenHeight = getScreenHeight()
+  
+  drawText("File: " & game.savePath, 10, screenHeight - 30, 20, DARKGRAY)
+  drawText("Tileset: " & game.level.tilesetPath, 10, screenheight - 50, 20, DARKGRAY)
 
   endDrawing()
 
@@ -315,6 +348,6 @@ when isMainModule:
     handleInput(game)
     draw(game)
 
-  saveTileMap("levels/tilemap.dat", game.level)
+  saveTileMap(game.savePath, game.level)
     
   closeWindow()
