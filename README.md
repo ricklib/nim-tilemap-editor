@@ -6,9 +6,14 @@ The editor provides simple functionality for opening, editing and saving binary 
 
 # Controls
 LMB + Drag = Move camera
+
 Scroll = Zoom in/out
+
 CTRL + S = Save active tilemap file
+
 CTRL + O = Open tilemap file
+
 CTRL + T = Open tileset file
+
 
 NOTE: The program auto-saves the tilemap file on succesful exit
