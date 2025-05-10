@@ -5,7 +5,7 @@ A simple tilemap editor made in nim using naylib, msgpack4nim and nim-native-dia
 The editor provides simple functionality for opening, editing and saving binary tilemap files.
 
 # Controls
-LMB + Drag = Move camera
+RMB + Drag = Move camera
 
 Scroll = Zoom in/out
 
