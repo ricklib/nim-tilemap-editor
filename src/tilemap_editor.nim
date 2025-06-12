@@ -203,7 +203,7 @@ proc handleTilePlacement(g: var Game) =
     let tileX = int(mouseWorld.x) div tileSize
     let tileY = int(mouseWorld.y) div tileSize
 
-    # Negative tile coords are invalid
+    # negative tile coords are invalid
     if tileX < 0 or tileY < 0:
       return
 
@@ -211,7 +211,7 @@ proc handleTilePlacement(g: var Game) =
     let localX = tileX mod chunkSize
     let localY = tileY mod chunkSize
 
-    # Handle modulo with negatives correctly
+    # handle modulo with negatives correctly
     if localX < 0 or localY < 0:
       return
 
